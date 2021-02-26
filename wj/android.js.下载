@@ -1,0 +1,153 @@
+'use strict';
+// eslint-disable no-sequences
+(function() {
+    var wjwOnAndroidApp;
+    (function() {
+        var $body = $('body');
+        // 手机端答题页面不加GrowingIO
+        if (!$body.hasClass('surveyMobilePage') && !$body.hasClass('formMobilePage')) {
+            // GrowingIO 2.0
+            // prettier-ignore
+            /* eslint-disable-next-line */
+            !function(e,t,n,g,i){var tag; e[i]=e[i]||function(){(e[i].q=e[i].q||[]).push(arguments)},n=t.createElement("script"),tag=t.getElementsByTagName("script")[0],n.async=1,n.src=('https:'==document.location.protocol?'https://':'http://')+g,tag.parentNode.insertBefore(n,tag)}(window,document,"script","assets.giocdn.com/2.1/gio.js","gio");
+            gio('init', 'afe8e95ef63d7230', {});
+            gio('send');
+        }
+    })();
+
+    // track-sdk
+    // prettier-ignore
+    /* eslint-disable-next-line */
+    (function(i,s,o,g,r,a,m){if(i[r])return;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments);},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m);})(window,document,'script','https://s1.wenjuan.com/lib/tracksdk/monitor/track-dc-sdk.js','_track');
+
+    var AndroidUAKeywords = 'android_app/1.0.0';
+    var AndroidUAKeywordsHeader = 'android_app/';
+    var appAndroidVersion = '';
+    var onTestingAndroid = false;
+    var debugFlag = false;
+
+    var ua = window.navigator.userAgent;
+    var prefix = 'Mobile';
+
+    var debugConsole = function debugConsole(o) {
+        if (debugFlag) {
+            if (typeof o === 'string') {
+                console.log('------' + o + '------');
+            } else {
+                console.log(o);
+            }
+        }
+    };
+
+    onTestingAndroid && (ua += AndroidUAKeywords);
+
+    if (ua.indexOf(AndroidUAKeywords) !== -1) {
+        // return
+        wjwOnAndroidApp = true;
+        prefix = 'Android';
+    } else {
+        wjwOnAndroidApp = false;
+    }
+    // 安卓版本
+    if (ua.indexOf(AndroidUAKeywordsHeader) !== -1) {
+        appAndroidVersion = ua.substr(ua.indexOf('android_app/') + 12, 5);
+        window.appAndroidVersion = appAndroidVersion;
+    }
+    debugConsole('识别到' + prefix + '_' + 'App!');
+
+    if (typeof _hmt === 'undefined') {
+        window._hmt = [];
+        debugConsole('百度统计不存在');
+    } else {
+        debugConsole('百度统计存在');
+        debugConsole(_hmt);
+    }
+
+    (function() {
+        var $body = $('body');
+        var hm = document.createElement('script');
+        var hmUrl = 'https://hm.baidu.com/hm.js';
+
+        if (!wjwOnAndroidApp) {
+            hm.src = hmUrl + '?0ee21aaeb74be576ac5750519a81e29d';
+        } else {
+            hm.src = hmUrl + '?263bc42948bb104b44c972a08b905cbe';
+        }
+
+        if ($body.hasClass('surveyMobilePage') || $body.hasClass('formMobilePage')) {
+            hm.src = hmUrl + '?ad0624cf51ddee8ef3bd2513c2add79b';
+        }
+
+        var s = document.getElementsByTagName('script')[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+
+    (function() {
+        var androidPrefixs = document.querySelectorAll('.android-prefix');
+        var mSitePrefixs = document.querySelectorAll('.m-site');
+        if (wjwOnAndroidApp) {
+            for (var i = 0; i < mSitePrefixs.length; i++) {
+                var o = mSitePrefixs[i];
+                o.classList.remove('show-item');
+            }
+            for (var i = 0; i < androidPrefixs.length; i++) {
+                var o = androidPrefixs[i];
+                o.classList.add('show-item');
+            }
+        } else {
+            for (var i = 0; i < androidPrefixs.length; i++) {
+                var o = androidPrefixs[i];
+                o.classList.remove('show-item');
+            }
+            for (var i = 0; i < mSitePrefixs.length; i++) {
+                var o = mSitePrefixs[i];
+                o.classList.add('show-item');
+            }
+        }
+    })();
+
+    if ($ && $.fn && $.fn.jquery) {
+        debugConsole('使用的jquery版本:' + $.fn.jquery);
+    } else {
+        debugConsole('未检测到页面使用jquery');
+        return;
+    }
+
+    $(function() {
+        // 再見熊掌！
+        $("a img[src='http://eiv.baidu.com/hmt/icon/21.gif']").hide();
+    });
+
+    // 将cookie字符串转成对象格式
+    function analyzeCookie(totalCookie) {
+        var cookieArr = totalCookie.split(';');
+        var cookieObject = {};
+        for (var i = 0; i < cookieArr.length; i++) {
+            var cookieItem = cookieArr[i].split('=');
+            cookieObject[cookieItem[0].trim()] = cookieItem[1].trim();
+        }
+        return cookieObject;
+    }
+    // 删除冗余的cookie，str是要删除的cookie字符串（会做自动匹配） iskeepOne是否保留重复中的一条
+    function deleteRedundancyCookieByRegexp(str, isKeepOne) {
+        var totalCookieObj = analyzeCookie(document.cookie);
+        var re = new RegExp('\\w*' + str + '\\w*', 'i'); // 正则匹配前后字符
+        var firstMatch = '';
+        var deleteNum = 0;
+        for (var k in totalCookieObj) {
+            if (re.test(k)) {
+                if (!firstMatch && isKeepOne) {
+                    // 保留第一条匹配项
+                    firstMatch = k;
+                } else {
+                    deleteNum++;
+                    delCookie(k);
+                }
+            }
+        }
+        // console.log('共删除匹配 ' + re + ' 项: ' + deleteNum + '个')
+        // console.log('保留第一条匹配项: ' + firstMatch);
+    }
+    // 删除冗余的 *_gr_session_id_* 标识的cookie
+    deleteRedundancyCookieByRegexp('_gr_session_id_');
+})();

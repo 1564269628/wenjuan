@@ -1,0 +1,20 @@
+.evaluation-chart {
+    height: 220px;
+    width: 100%
+}
+
+.evaluation-chart-wrap {
+    margin: 23px auto;
+    position: relative;
+}
+
+.evaluation-details-btn {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    z-index: 600;
+}
+.evaluation-details-btn a,.evaluation-special-details-btn{
+    font-size: 12px;
+    color: #2672FF;
+}

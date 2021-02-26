@@ -1,0 +1,521 @@
+/*-------------------------- */
+.survey_list{
+    background-color: #fff;
+}
+.survey_list .list_li{
+	position:relative;
+	/*padding: 15px 155px 15px 15px;*/
+	border-bottom: 1px solid #EDEDED;
+	overflow: hidden;
+	color: #333;
+    text-decoration: none !important;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.survey_list .list_li > a{
+	color: #2e8ec1;
+	display: block;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.survey_list .list_li .list_text{
+	width: 60%;
+	/*height: 100%;*/
+	margin-top: 2%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+    white-space: nowrap;
+}
+/*新增点击列表展开标题*/
+.showTitle{
+	width: 60%;
+	height: 100%!important;
+	margin-top: 2%;
+	word-wrap : break-word!important;
+}
+.survey_list .list_li .list_status_off::before{
+	content: "";
+	margin-bottom: 7%;
+	display: inline-block;
+	width: 5px;
+	height: 5px;
+	border-radius: 50%;
+	background-color: rgb(236,96,100);
+}
+.survey_list .list_li .list_status_off,.survey_list .list_li .list_status_on,.survey_list .list_li .list_status_end,.survey_list .list_li .list_status_auditing,.survey_list .list_li .list_status_audited{
+	float: left;
+	position: absolute;
+	top:21px;
+	left:63%;
+	font-size: 12px;
+}
+.survey_list .list_li .list_status_on::before{
+	content: "";
+	margin-bottom: 7%;
+	display: inline-block;
+	width: 5px;
+	height: 5px;
+	border-radius: 50%;
+	background-color: rgb(50,172,148);
+}
+.survey_list .list_li .list_status_end::before,
+.survey_list .list_li .list_status_auditing::before,
+.survey_list .list_li .list_status_audited::before{
+	content: "";
+	margin-bottom: 7%;
+	display: inline-block;
+	width: 5px;
+	height: 5px;
+	border-radius: 50%;
+	background-color:#aaa;
+}
+.survey_list .list_li .list_status_auditing::before{
+	background-color:#FFBE3A;
+}
+.survey_list .list_li .list_status_audited::before{
+	background-color:#FF6D56;
+}
+.survey_list .list_r{
+	position: absolute;
+	right: 5%;
+	text-align: right;
+	top: 20px;
+	text-align: right;
+}
+.survey_list .get_result{
+    color: #2E8EC1;
+    font-size: 16px;
+}
+.survey_list .wjNumber{
+	/*padding: 2px 5px;*/
+	/*background-color:#A1D8F6;*/
+	border-radius: 3px;
+	color: #999;
+	font-size: 14px;
+	margin: 0 5px 0 0;
+}
+.Fbk textarea{
+	width: 100%;
+	border: 1px solid #BFBFBF;
+	padding: 5px;
+	height: 100px;
+	resize: none;
+}
+.mot10{margin-top: 10px;}
+.Fbk input{
+	width: 100%;
+	border: 1px solid #BFBFBF;
+	padding: 5px;
+}
+.Fbk p{margin: 10px 0; font-size: 14px;}
+.Fbk input{padding: 10px 5px;}
+.Fbk_con{margin-bottom: 20px;}
+
+
+/*---------------------------*/
+.addSurvey{
+	position: fixed;
+	top: 50px;
+	width: 100%;
+	padding-top: 3px;
+	display: none;
+	z-index: 99;
+}
+.mackbox{
+	display: block;
+	background: url('/static/images/weixin/bg.png') 0 0;
+	min-height: 100px;
+	margin:6px 5px 5px 5px;
+	
+/*	opacity: .8;*/
+}
+.mackbox ul{}
+.mackbox ul li{float: left;width: 50%; padding:0;}
+.mackbox ul li a{ color: #fff; text-align: center; display: block; padding: 15px 0;}
+.mackbox ul li a div{ 
+	width: 40px;
+	height: 45px;
+	margin: 0 auto 5px auto;
+	background-position: 0 0;
+	background-repeat: no-repeat;
+	background-size:contain;
+}
+.mackbox ul li:first-child a{
+	border-left: 0px solid #6A7378;
+    border-right: 1px solid #6A7378;
+}
+.mackbox ul li:last-child a{
+    border-left: 1px solid #4B5258;
+    border-right: 0px solid #6A7378;
+}
+
+.menu_list{
+	float: left;
+    padding: 0 10px;
+    width: 50%;
+    margin-top: 50px;
+}
+.menu_list div{
+	width: 40px;
+	height: 45px;
+	margin: 0 auto 5px auto;
+	background-position: 0 0;
+	background-repeat: no-repeat;
+	background-size:contain;
+}
+
+.WjAddBut{background-image: url('/static/images/weixin/wenjuan.png');}
+.FormAddBut{background-image: url('/static/images/weixin/biaodan.png');}
+.mackbox_Arrow{
+	width: 13px;
+	height: 6px;
+	position: absolute;
+	right: 24px;
+	background-position: 0 0;
+	background-repeat: no-repeat;
+	background-size:contain;
+	background-image: url('/static/images/weixin/bg_2.png');
+}
+
+/*-----------数据详情---------------*/
+.ListCon{
+	width: 100%;
+	overflow: auto;
+}
+.DataListInfo{
+	width: 100%;
+	height: 48px;
+	background-color: #F3F3F3;
+	padding: 10px 15px;
+	display: none;
+}
+.showField{
+    float: left;
+    font-size: 14px;
+    padding: 5px 10px;
+    color: #fff;
+    border-radius: 3px;
+    background-color: #2E8EC1;
+}
+.listinfo{
+	float: right;
+	line-height: 28px;
+	color: #979797;
+}
+
+.DataTable{
+    background-color: rgba(0, 0, 0, 0);
+    border-collapse: collapse;
+    border-spacing: 0;
+    width: 100%;
+}
+.DataTable thead tr td {
+    background-color: #fff;
+    /* border-left: 1px solid #F3F3F3; */
+    border-bottom: 1px solid #F3F3F3;
+    border-top: medium none;
+    margin: 0;
+    line-height: 45px;
+    padding: 2px 10px;
+}
+
+.DataTable tbody tr td {
+    border-bottom: 1px solid #EDEDED;
+    /* border-left: 1px solid #F3F3F3; */
+    line-height: 45px;
+    margin: 0;
+    padding: 2px 10px;
+	overflow: auto;
+    /* background-color: #F9F9F9; */
+}
+.DataTable tr .tdiv {
+    /*max-width: 200px;*/
+    padding: 0;
+    /*max-width: 100px;*/
+    /*    overflow: hidden;
+    text-overflow: ellipsis;*/
+    white-space: nowrap;
+    /* color: #aaa; */
+}
+/*.DataTable thead tr td[title='请选择日期'] .tdiv,.DataTable tbody tr td[name='请选择日期'] .tdiv{
+	width: 100px!important;
+	min-width: 100px!important;
+}*/
+
+.DataTable tr .tdiv .num-wrap {
+	display: inline-block;
+	position: relative;
+	line-height: 0.14rem;
+}
+
+.DataTable tr .tdiv .num-wrap .red-dot {
+	position: absolute;
+	left: 100%;
+	top: 0;
+	width: 0.04rem;
+	height: 0.04rem;
+	background: #FF6D56;
+	border-radius: 100%;
+	display: none;
+}
+
+.DataTable thead td, .UnityTable tbody td {
+    overflow: hidden;
+    white-space: nowrap;
+}
+.DataTable .odd{
+	background-color: #fff;
+}
+
+.Filter_box_ul{
+    
+}
+.Filter_box_ul li{
+    line-height: 50px;
+    padding:0 50px 0 10px;
+    position: relative;
+    border-bottom: 1px solid #EDEDED;
+    overflow: hidden;
+    text-decoration: none !important;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.Filter_box_ul li:hover{
+
+}
+.Filter_box_ul li:active{
+    background-color: #efefef;
+}
+.Filter_box_ul li:last-child{
+    /*border-bottom: none;*/
+}
+.Filter_checkbox{
+	position: absolute;
+	top: 12px;
+	right: 16px;
+	width: 20px;
+	height: 20px;
+    background-position: 0 0;
+	background-repeat: no-repeat;
+	background-size:contain;
+	border:1px solid #ccc;
+	border-radius: 5px;
+}
+.cb_on{background: url('/static/images/weixin/icon_report1.png') no-repeat -99px -27px;}
+
+.morePage{padding: 5px 0; text-align: center; font-size: 14px;}
+/*手机问卷导航开始*/
+
+.FormListSee{background-image: url('/static/images/weixin/index-icon.png');background-position: -120px -125px;background-size: 300%;}
+.SurveyListSee{background-image: url('/static/images/weixin/index-icon.png');background-position: -120px 10px ;background-size: 300%;}
+.WjAddForm{background-image: url('/static/images/weixin/index-icon.png');background-position: 10px -125px ;background-size: 300%;}
+.WjAddSurvey{background-image: url('/static/images/weixin/index-icon.png');background-position: 10px 10px ;background-size: 300%;}
+.menu_list1{
+	width: 44%;
+	float: left;
+    /*padding: 0 10px;*/
+    margin-left: 4%;
+	border:1px solid #dcdcdc;
+	border-radius: 8px;
+}
+.menu_list2{
+	width: 44%;
+	float: left;
+    padding: 0 10px;
+    margin-left: 10px;
+	border:1px solid #dcdcdc;
+	border-radius: 8px;
+}
+.menu_list1 div{ 
+	width: 55px;
+	height: 59px;
+	margin: 0 auto;
+	background-repeat: no-repeat;
+}
+.menu_list2 div{ 
+	width: 55px;
+	height: 59px;
+	margin: 0 auto;
+	background-repeat: no-repeat;
+}
+.green{
+	color: #00bb9c!important;
+}
+.button1 {
+    cursor: pointer;
+    display: inline-block;
+    font-size: 14px;
+    outline: medium none;
+    padding: 1.7em 0 1.6em;
+    text-align: center;
+    text-decoration: none;
+    vertical-align: baseline;
+    color: #56a5f1;
+}
+.listnavbox{padding:0 20px;font-family: "Microsoft Yahei";}
+.WJ_yellow{
+   background: none repeat scroll 0 0 #FCB200 !important;
+   color: #F7F7F7;
+   font-size: 18px !important;
+   font-weight: normal;
+   width: 100%;
+}
+.WJ_or{
+   font-weight: normal;
+   width: 100%;
+}
+.WJ_green{
+   background: none repeat scroll 0 0 #50CF96 !important;
+   color: #F7F7F7;
+   font-size: 18px !important;
+   font-weight: normal;
+   width: 100%;
+}
+.WJ_blue1{
+   background: none repeat scroll 0 0 #3C9CCF !important;
+   color: #F7F7F7;
+   font-size: 18px !important;
+   font-weight: normal;
+   width: 100%;
+}
+/*手机问卷导航结束*/
+
+/*手机列表编辑条*/
+.share_result_menu{
+/*background-color: #41464B;*/
+	float: left;
+	width: 100%;
+	padding:0;
+}
+.share_result_menu ul a{
+	width:100%;
+	margin: 0;
+	padding: 0;
+	display:block;
+	height:55px;
+}
+.share_result_menu ul li{
+	float:left;
+	width:20%;
+}
+.share_result_menu ul li div{
+	display: block;
+	margin: 15px auto;
+	width: 29px;
+	padding: 0 10px;
+	height: 44px;
+	background-position: 0 0;
+	background-repeat: no-repeat;
+	background-size:contain;
+}
+/*新增暂停按钮*/
+.share_result_menu .sr_list_stopbg{background-image: url('/static/images/weixin/stop.png');}
+.share_result_menu .sr_list_beginbg{background-image: url('/static/images/weixin/begin.png');}
+.share_result_menu .sr_list_editbg{background-image: url('/static/images/weixin/edit.png');}
+.share_result_menu .sr_list_no_editbg{background-image: url('/static/images/weixin/no-edit.png');}
+.share_result_menu .sr_sharebg{background-image: url('/static/images/weixin/share.png');}
+.share_result_menu .sr_resultbg{background-image: url('/static/images/weixin/result.png');}
+.share_result_menu .sr_list_delbg{background-image: url('/static/images/weixin/del.png');}
+.list_li_conent{padding: 15px 60px 15px 15px;}
+.showAllTitle,.showAllTitle .list_text{white-space:inherit!important;}
+.footer{margin-top: 180px;}
+.footer .p1{text-align:center;font-size:14px;color:#707175;margin-top:10px;}
+.footer .p2{text-align:center;font-size:12px;color:#707175;}
+/* 投票墙广告位 */
+.addSurvey{ top: 100px;}
+/*移动端登录注册优化*/
+.list_bigTit{
+	padding: 0 10px;
+	color: #484848;
+	font-size: 22px;
+	font-weight: 300;
+}
+.list_smallTit{
+	padding: 0 10px;
+	color: #aaa;
+	font-size: 18px;
+	padding-bottom: 10px;
+}
+.beLow{
+	margin-top: 160px;
+}
+/* 列表页提示关注公众号 */
+#leave_tip_wrap {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.65);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 99;
+}
+#leave_tip_wrap .leave_tip {
+    width: 330px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    position: fixed;
+    top: 42.5%;
+    left: 50%;
+    z-index: 99;
+    padding: 35px 24px 35px;
+    margin: -198px 0 0 -166px;
+}
+#leave_tip_wrap .leave_tip .leave_tit {
+	margin-top: 10px;
+	margin-left: 30px;
+    margin-right: 30px;
+    text-align: center;
+    font-size: 21px;
+    color: #484848;
+    line-height: 1.8em;
+}
+#leave_tip_wrap .qrcode_div{
+	text-align: center;
+}
+#leave_tip_wrap .leave_tip .leave_con {
+    font-size: 16px;
+    color: #484848;
+	line-height: 1.8em;
+	text-align: center;
+}
+#leave_tip_wrap .leave_tip .leave_btn_wrap {
+    margin: 30px 0 0;
+    font-size: 16px;
+    color: #484848;
+    line-height: 1.8em;
+    display: flex;
+    justify-content: space-between;
+}
+#leave_tip_wrap .leave_tip .leave_btn_wrap>a.btn_leave {
+    color: #ffffff;
+    border-radius: 5px;
+    background-color: #d8d8d8;
+}
+#leave_tip_wrap .leave_tip .leave_btn_wrap>a.btn_cancel_leave {
+    color: #ffffff;
+    border-radius: 5px;
+    background-color: #56a5f1;
+}
+#leave_tip_wrap .leave_tip .leave_btn_wrap>a {
+    display: block;
+    width: 130px;
+    height: 43px;
+    line-height: 43px;
+    text-align: center;
+}
+#leave_tip_wrap .jsbox_close {
+    color: #efefef;
+    font-size: 14px;
+    font-weight: bold;
+    height: 18px;
+    position: absolute;
+    right: 16px;
+    top: 16px;
+    width: 19px;
+    text-align: center;
+    background: url(/static/js/plug-in/jsbox/images_jsbox/jsbox_close.png) -3px -5px no-repeat;
+}
+/* 列表页提示关注公众号 */

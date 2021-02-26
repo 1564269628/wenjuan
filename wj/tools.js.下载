@@ -1,0 +1,353 @@
+/* eslint-disable no-extend-native */
+Array.prototype.in_array = function(e) {
+    for (var i = 0; i < this.length; i++) {
+        if (this[i] === e) { return true; }
+    }
+    return false;
+};
+
+(function(window, $) {
+/**
+ *
+ * 判断数据类型
+ * @param {String} type 需要判断的数据类型，可以是"Object","String","Array","Function","Undefined"
+ * @param {Object} obj 要判断的值
+ * @return {Boolean} 要判断的值是判断的类型返回true，否则返回false
+ */
+    function isType(type, obj) {
+        return {}.toString.call(obj) === '[object ' + type + ']';
+    }
+
+    function setCookie(c_name, value, expiredays, domain) {
+        var exdate;
+        var domain = getParseDomain(domain);
+        // expiredays 可以是Number类型的过期天数
+        // 也可以是String类型的日期字符串
+        // 还可以是Date类型的
+        if (expiredays && expiredays instanceof Date) { // expiredays是Date类型
+            exdate = expiredays;
+        } else if (expiredays && isDate(expiredays)) { // expiredays是日期字符串
+            exdate = new Date(expiredays);
+        } else { // expiredays为Nubmer类型或者未设置
+            var newDate = new Date();
+            expiredays = (!expiredays || expiredays !== Number(expiredays)) ? 1 : expiredays;
+            newDate.setDate(newDate.getDate() + expiredays);
+            exdate = newDate.toGMTString();
+        }
+        document.cookie = c_name + '=' + escape(value) + ';expires=' + exdate + ';path=/;domain=' + domain;
+    }
+    // 验证字符串str是否为日期格式的字符串
+    function isDate(str) {
+        var reg = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})$/;
+        if (!str) return false;
+        var arr = reg.exec(str);
+        if (reg.test(str) && RegExp.$2 <= 12 && RegExp.$3 <= 31 && RegExp.$4 <= 23 && RegExp.$5 <= 59 && RegExp.$6 <= 59) {
+            return true;
+        }
+        return false;
+    }
+
+    function getCookie(c_name) {
+        if (document.cookie.length > 0) {
+            var c_start = document.cookie.indexOf(c_name + '=');
+            if (c_start !== -1) {
+                c_start = c_start + c_name.length + 1;
+                var c_end = document.cookie.indexOf(';', c_start);
+                if (c_end === -1) c_end = document.cookie.length;
+                return unescape(document.cookie.substring(c_start, c_end));
+            }
+        }
+        return '';
+    }
+    // 删除cookie
+    function delCookie(name) {
+        var exp = new Date();
+        exp.setTime(exp.getTime() - 1);
+        var cval = getCookie(name);
+        var domain = getParseDomain();
+        if (cval != null) { document.cookie = name + '=' + cval + ';expires=' + exp.toGMTString() + ';path=/;domain=' + domain; }
+    }
+    // 获取设置cookie的domain（和后端设置逻辑保持统一）
+    function getParseDomain(domain) {
+        var hostname = location.hostname.toLocaleLowerCase();
+        domain = domain || hostname;
+        var reWenjuan = /.wenjuan.com$/;
+        var reLocalhost = /^(192.168.)|^(127.0.0.)/;
+        if (reWenjuan.test(domain)) {
+            domain = '.wenjuan.com';
+        } else if (reLocalhost.test(domain)) {
+            domain = domain;
+        } else if (domain === 'localhost') {
+            domain = hostname;
+        } else {
+            domain = '.' + domain;
+        }
+        return domain;
+    }
+
+    function goto_furl(url, furl) {
+        var target = '';
+        if (furl === '') {
+            var location_href = location.href;
+            location_href = url_add_random(location_href);
+        } else { location_href = furl; }
+
+        var join_pre_str = url.indexOf('?') > 0 ? '&' : '?';
+        if (target === '') {
+            if (url === '/login/') {
+                location.href = url + join_pre_str + 'furl=' + encodeURIComponent(location_href);
+            } else {
+                location.href = url + join_pre_str + 'furl=' + encodeURIComponent(location_href);
+            }
+        } else {
+            alert(target);
+        }
+        return false;
+    }
+
+    var global_error = 0;
+    function check_register(field, value, operate, callback) {
+        $.ajax({ url: '/checkmember/', async: false, data: { field: field, value: value, operate: operate }, dataType: 'json', type: 'post', success: function(data) {
+            if (data.error === 0) {
+                if (operate === 'sendmail' && data.result === 0 && field === 'email') {
+                    location.href = '/register/?rtype=send&email=' + data.email + '&time=' + Math.random();
+                    return;
+                } else if (operate === 'sendmail' && data.result === 1) {
+                    data.result = '该Email已经被占用。';
+                } else if (data.result === 2) {
+                    data.result = '未登陆。';
+                }
+
+                if (field === 'bindemail') { callback(data.result, data); } else { callback(data.result); }
+            } else {
+                alert(data.error);
+            }
+        }, error: function(xhr) {
+            alert(xhr.responseText);
+        } });
+    }
+
+    function check_forgotpwd(vcode, value, vvcode, operate, callback) {
+        $.ajax({ url: '/forgotpwd/email/', async: true, data: { vcode: vcode, email: value, vvcode: vvcode, operate: operate, _xsrf: getCookie('_xsrf') }, dataType: 'json', type: 'post', success: function(data) {
+            if (data.error === 0) {
+                if (operate === 'sendmail') {
+                    location.href = '/forgotpwd/send/?email=' + data.email + '&email_head=' + data.email_head + '&server_url=' + data.server_url + '&vvcode=' + data.vvcode + '&time=' + Math.random();
+                    return;
+                }
+                if (operate === 'sendmail_again') {
+                    callback('0');
+                    return;
+                }
+            } else if (data.error === 1) {
+                if (operate === 'sendmail') {
+                    callback(data.msg);
+                }
+                if (operate === 'sendmail_again') {
+                    callback(data.msg);
+                }
+            } else {
+                alert(data.error);
+            }
+        }, error: function(xhr) {
+            alert(xhr.responseText);
+        } });
+    }
+
+    window.p_sendweibo = false;
+
+    function send_weibo_share(msgid) {
+        if (window.p_sendweibo) {
+            alert('wait');
+            return;
+        }
+        var content = $('#content_detail_' + msgid).val();
+        var url_content = location.href;
+        var pic_content = '';
+        if ($('#urlcontent_detail_' + msgid)) { url_content = $('#urlcontent_detail_' + msgid).val(); }
+        if ($('#piccontent_detail_' + msgid)) { pic_content = $('#piccontent_detail_' + msgid).val(); }
+
+        var follow = '0';
+
+        window.p_sendweibo = true;
+        $.cookie('share_content', content);
+        $.ajax({
+            url: '/event/sendweibo/send/?' + Math.random(),
+            async: false,
+            data: {
+                content: content,
+                follow: follow,
+                localhref: url_content,
+                pic_content: pic_content,
+                _xsrf: getCookie('_xsrf')
+            },
+            dataType: 'json',
+            type: 'post',
+            success: function(data) {
+                var obj = data;
+                var furl = '';
+                if (obj.error > 999) {
+                    window.p_sendweibo = false;
+                    window.open(obj.ourl, '_blank', '');
+                } else if (obj.error > 900 && obj.error < 904) {
+                    var old_href = location.href;
+                    var new_href = old_href;
+                    alert('分享操作成功。');
+                // goto_furl('/sharesuccess/?s=' + obj.error + '&w=' + weibo, new_href);
+                } else if (obj.error === 1) {
+                    alert('请先登录或注册');
+                    furl = location.href;
+                    furl = url_add_random(furl, 'shareretry=1');
+                    goto_furl('/login/', furl);
+                } else if (obj.error === 11) {
+                    furl = location.href;
+                    furl = url_add_random_ext(furl, 'shareretry=1');
+                    goto_furl('/openapi/sina/', furl);
+                } else if (obj.error === 10) {
+                    alert('微博授权过期,请点击分享按钮重试。');
+                    furl = location.href;
+                    furl = url_add_random_ext(furl, 'shareretry=1');
+                    alert(furl);
+                    goto_furl('/openapi/sina/', furl);
+                } else if (obj.error > 200 && obj.error < 204) {
+                    alert('微博分享失败,内容重复或发送过于频繁，\n请修改内容或稍后再试。');
+                } else {
+                    alert(obj.error);
+                }
+                window.p_sendweibo = false;
+            }, error: function(xhr) {
+                alert(xhr.responseText);
+                window.p_sendweibo = false;
+            } });
+    }
+
+    function url_add_random(turl) {
+        var old_href_arr = turl.split('#');
+        var prefix = (old_href_arr[0].indexOf('?') > 0) ? '&' : '?';
+        var new_href = old_href_arr[0] + prefix + Math.random();
+        for (var i = 1; i < old_href_arr.length; i++) { new_href += '#' + old_href_arr[i]; }
+        // alert(new_href);
+        return new_href;
+    }
+
+    function url_add_random_ext(turl, ext) {
+        var old_href_arr = turl.split('#');
+        var prefix = (old_href_arr[0].indexOf('?') > 0) ? '&' : '?';
+        var new_href = old_href_arr[0] + prefix + Math.random() + '&' + ext;
+        for (var i = 1; i < old_href_arr.length; i++) { new_href += '#' + old_href_arr[i]; }
+        // alert(new_href);
+        return new_href;
+    }
+
+    function DataLength(fData) {
+        var intLength = 0;
+        for (var i = 0; i < fData.length; i++) {
+            if ((fData.charCodeAt(i) < 0) || (fData.charCodeAt(i) > 255)) { intLength = intLength + 2; } else { intLength = intLength + 1; }
+        }
+        return intLength;
+    }
+
+    window._hmt = window._hmt || [];
+
+    function login_form_openapi(api) {
+        var str = '';
+        if (getCookie('topic-create')) {
+            str = 'utm_source=library';
+        }
+        if (api === 'qq') {
+            _hmt.push(['_trackPageview', '/register/qqlogin']);
+            _hmt.push(['_trackEvent', 'Register', 'Login', 'QQLogin']);
+        } else if (api === 'sina') {
+            _hmt.push(['_trackPageview', '/register/weibologin']);
+            _hmt.push(['_trackEvent', 'Register', 'Login', 'WeiboLogin']);
+        } else if (api === 'taobao') {
+            _hmt.push(['_trackPageview', '/register/tblogin']);
+            _hmt.push(['_trackEvent', 'Register', 'Login', 'TBLogin']);
+        } else if (api === 'renren') {
+            _hmt.push(['_trackPageview', '/register/renrenlogin']);
+            _hmt.push(['_trackEvent', 'Register', 'Login', 'RenrenLogin']);
+        } else if (api === 'weixin') {
+            _hmt.push(['_trackPageview', '/register/weixinlogin']);
+            _hmt.push(['_trackEvent', 'Register', 'Login', 'WeixinLogin']);
+            location_href = location.href;
+            // 用于登录后跳转,之前写死到list,现在可以通过cookie读取到自定义页面
+            var link = getCookie('login_furl');
+            if (link) {
+                window.setTimeout("location.href = '/login/?weixin_scan=1&furl=" + encodeURIComponent(location.protocol + '//' + location.host + link) + '&' + str + "'", 500);
+            } else {
+                window.setTimeout("location.href = '/login/?weixin_scan=1&furl=" + encodeURIComponent(location.protocol + '//' + location.host + '/list/') + '&' + str + "'", 500);
+            }
+            return;
+        }
+        var jump_href = '';
+        if (str === '') {
+            jump_href = '/openapi/' + api + '/?web_site=pc';
+        } else {
+            jump_href = '/openapi/' + api + '/?web_site=pc&' + str + '';
+        }
+        window.setTimeout("location.href='" + jump_href + "'", 500);
+    }
+
+    function getParameterByName(name) {
+        name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+        var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+        var results = regex.exec(location.search);
+        return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+    }
+
+    // 判断访问终端
+    var Browser = {
+        versions: (function() {
+            var ua = navigator.userAgent;
+            return {
+                trident: ua.indexOf('Trident') > -1, // IE内核
+                presto: ua.indexOf('Presto') > -1, // opera内核
+                webKit: ua.indexOf('AppleWebKit') > -1, // 苹果、谷歌内核
+                gecko: ua.indexOf('Gecko') > -1 && ua.indexOf('KHTML') === -1, // 火狐内核
+                mobile: !!ua.match(/AppleWebKit.*Mobile.*/), // 是否为移动终端
+                ios: !!ua.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/), // ios终端
+                android: ua.indexOf('Android') > -1 || ua.indexOf('Adr') > -1, // android终端
+                iPhone: ua.indexOf('iPhone') > -1, // 是否为iPhone或者QQHD浏览器
+                iPad: ua.indexOf('iPad') > -1, // 是否iPad
+                webApp: ua.indexOf('Safari') === -1, // 是否web应该程序，没有头部与底部
+                weixin: ua.indexOf('MicroMessenger') > -1, // 是否微信 （2015-01-22新增）
+                qq: ua.match(/\sQQ/i) === ' qq', // 是否QQ,
+                iosQQ: (!!ua.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/) && / QQ/i.test(ua)),
+                androidQQ: (ua.indexOf('Android') > -1 || ua.indexOf('Adr') > -1) && /MQQBrowser/i.test(ua) && /QQ/i.test((ua).split('MQQBrowser')),
+                uc: ua.indexOf('UCBrowser') > -1
+            };
+        }()),
+        language: (navigator.browserLanguage || navigator.language).toLowerCase()
+    };
+
+    // HTML标签转义（< -> &lt;）
+    function html2Escape(sHtml) {
+        return sHtml.replace(/[<>&"]/g, function(c) {
+            return { '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c];
+        });
+    }
+    // HTML标签反转义（&lt; -> <）
+    function escape2Html(str) {
+        var arrEntities = { 'lt': '<', 'gt': '>', 'nbsp': ' ', 'amp': '&', 'quot': '"' };
+        return str.replace(/&(lt|gt|nbsp|amp|quot);/ig, function(all, t) {
+            return arrEntities[t];
+        });
+    }
+
+    window.isType = isType;
+    window.setCookie = setCookie;
+    window.getCookie = getCookie;
+    window.delCookie = delCookie;
+    window.getParseDomain = getParseDomain;
+    window.goto_furl = goto_furl;
+    window.check_register = check_register;
+    window.check_forgotpwd = check_forgotpwd;
+    window.send_weibo_share = send_weibo_share;
+    window.url_add_random = url_add_random;
+    window.url_add_random_ext = url_add_random_ext;
+    window.DataLength = DataLength;
+    window.login_form_openapi = login_form_openapi;
+    window.getParameterByName = getParameterByName;
+    window.Browser = Browser;
+    window.html2Escape = html2Escape;
+    window.escape2Html = escape2Html;
+})(window, jQuery);

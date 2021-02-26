@@ -1,0 +1,265 @@
+$(function () {
+    var shareTypeTip = new GuideText({
+        maxWidth: 162
+    });
+    // 级联题返回上一级事件
+    $(".cascader-background").on({
+        'mouseenter': function (e) {
+            var event = e || window.event;
+            var title = $(this).attr('data-title');
+            var plantform = $(this).attr("data-plantform");
+            if(plantform == "PC"){
+                shareTypeTip.show(event.currentTarget, {
+                    inner: title,
+                    direction: 'top'
+                });
+            }
+        },
+        'mouseleave': function (e) {
+            shareTypeTip.hidden();
+        },
+        'click': function () {
+            backLastCascader(this);
+        }
+    });
+    //弹出下拉菜单
+    $('.add-div').click(function () {
+        var visible = $(this).next('ul:visible').is('ul:visible');
+        if (!visible) {
+            $('.add-div').next('ul').hide();
+            $(this).next('ul').show();
+        } else {
+            $(this).next('ul').hide();
+        }
+        return false;
+    });
+    //隐藏下拉菜单
+    $('body').click(function () {
+        $('.add-div').next('ul').hide();
+    });
+    $(".cascader-filter-pc").on("click", ".cascader-dropdown-option", function () {
+        var chartData = {
+            "qid": $(this).data("qid"),
+            "name": $(this).text(),
+            "index": $(this).attr("data-index"),
+            "isFirstSelect": false,
+            "isClick": false,
+            "chartStatus": true,
+            "plantform": $(this).attr("data-plantform")
+        }
+        selectChangeEvent($(this).closest(".cascader-filter-pc"), chartData);
+    });
+    if(typeof question_list != "undefined"){
+        question_list.map(function (params, index) {
+            if (params.q_disp_type == 'cascader') {
+                if (isShareReport != "result_share") {
+                    bind_cascader_event(params);
+                } else {
+                    $(".cascader-overflow").remove();
+                }
+            }
+        });
+    }
+});
+var isShareReport = getRequest()["v_type"] || "";
+function getRequest() {
+    var url = location.search; //获取url中"?"符后的字串
+    var theRequest = new Object();
+    if (url.indexOf("?") != -1) {
+        var str = url.substr(1);
+        strs = str.split("&");
+        for(var i = 0; i < strs.length; i ++) {
+        theRequest[strs[i].split("=")[0]]=(strs[i].split("=")[1]);
+        }
+    }
+    return theRequest;
+}
+function bind_cascader_event(qmodel) {
+    var qdiv = $("#question_content_" + qmodel.qid),
+    selectItems = qdiv.find("select[data-cascader-index]");
+    selectItems.change(function () {
+        var _this = this
+        var chartData = {
+            "isFirstSelect": false,
+            "isClick": false,
+            "chartStatus": true,
+            "index": $(_this).val(),
+            "name": $(_this).find("option:selected").text(),
+            "qid": $(_this).attr("data-qid"),
+            "plantform": $(_this).attr("data-plantform")
+        }
+        selectChangeEvent(_this, chartData)
+    });
+}
+
+function backLastCascader(obj) {
+    var currentLevel = parseInt($(obj).attr("data-current-level"));
+    var qid = $(obj).attr("id").replace("cascader_back_", "");
+    var level = parseInt($(obj).attr("data-level"));
+    var clickStatus = $(obj).attr("data-click");
+    currentLevel = clickStatus == "isChart" ? currentLevel - 1 : currentLevel;
+    if (currentLevel < 0 || $(obj).attr("status") == "disabled") return;
+    currentLevel -= 1;
+    var $select = $(obj).closest("#question_content_" + qid).find("[data-cascader-index=" + (currentLevel < 0 ? 0 : currentLevel) + "]");
+    var chartObj = {
+        "qid": qid,
+        "name": $select.attr("data-cascader-select-value"),
+        "index": $select.attr("data-cascader-select-index"),
+        "isFirstSelect": currentLevel == -1 ? true : false,
+        "plantform": $(obj).attr("data-plantform"),
+
+    }
+    currentLevel == -1 ? $(obj).attr("data-click", 'isChart') : $(obj).attr("data-click", 'noChart');
+    selectChangeEvent($select, chartObj);
+}
+
+function selectChangeEvent(obj, chartData) {
+    cascader_chart_info_dict = {};
+    var qid = chartData.qid;
+    var qdiv = $(obj).closest("#question_content_" + qid);
+    var optionDataIndex = qdiv.attr("data-option-index"),
+        list = {
+            children: JSON.parse(question_list[optionDataIndex].option_data) || []
+        };
+    var qDispType = qdiv.attr("data-q-disp-type");
+    var $cascaderBack = qdiv.find("#cascader_back_" + qid);
+    var current = $(obj),
+        currentSelectIndex = chartData.index, //选中的索引值（x-x-x-x）
+        currentSelectValue = chartData.name, //选中的文本值
+        currentCascaderIndex = Number.parseInt(current.attr("data-cascader-index") || 0), //当前级联层级
+        cascaderEnd = Number.parseInt(current.attr("data-cascader-end-index") || 4), //级联数
+        loopIndex = currentCascaderIndex;
+    if (chartData.isClick) {
+        $cascaderBack.attr("data-current-level", currentCascaderIndex + 1)
+        $cascaderBack.attr("data-click", "isChart");
+    } else {
+        if (chartData.chartStatus) {
+            $cascaderBack.attr("data-click", "noChart")
+        }
+        $cascaderBack.attr("data-current-level", currentCascaderIndex);
+    }
+    //同步选中信息设置到标签上select
+    currentSelectIndex = currentSelectIndex === "0" ? "" : currentSelectIndex;
+    currentSelectValue = !currentSelectIndex ? "" : currentSelectValue;
+    current.attr("data-cascader-select-index", currentSelectIndex).attr("data-cascader-select-value", currentSelectValue);
+    if (chartData.isFirstSelect) {
+        if (chartData.plantform == "PC") {
+            current.find(".cascader-default").text(current.find(".cascader-default").attr("data-title")).attr("title", current.find(".cascader-default").attr("data-title"));
+            current.attr("data-cascader-select-value", "").attr("data-cascader-select-index", "");
+        } else {
+            current.find("option[value='0']").attr("selected", true);
+            current.attr("data-cascader-select-value", "").attr("data-cascader-select-index", "");
+        }
+    } else {
+        if (chartData.plantform == "PC") {
+            current.find(".cascader-default").text(currentSelectValue).attr("title", currentSelectValue);
+        }
+    }
+    //当前是最后一级，无需处理
+    if (currentCascaderIndex >= cascaderEnd) {
+        return;
+    }
+    $cascaderBack.attr("data-filter", true);
+    //获取当前路径,默认推入当前路径
+    var indexArr = [];
+    var cascaderList = []
+    //选择有效选项
+    if (currentSelectIndex) {
+        while (loopIndex >= 0) {
+            indexArr.unshift(qdiv.find("[data-cascader-index=" + loopIndex + "]").attr("data-cascader-select-index") || 0);
+            var cascaderIndex = Number.parseInt(qdiv.find("[data-cascader-index=" + loopIndex + "]").attr("data-cascader-select-index")) - 1;
+            if (!chartData.isFirstSelect) {
+                cascaderList.unshift([qdiv.find("[data-cascader-index=" + loopIndex + "]").attr("data-cascader-select-value"), cascaderIndex])
+            }
+            loopIndex--;
+        }
+    }
+    //获取当前路径对应的值
+    var currentData = {},
+        index = 0;
+    if (indexArr.length > 0) {
+        currentData = list;
+        while (indexArr.length > 0) {
+            index = Number.parseInt(indexArr.shift()) - 1;
+            currentData = currentData.children[index] || {};
+        }
+    }
+
+    //更新后面的选项
+    loopIndex = currentCascaderIndex + 1;
+    var nextSelect = null,
+        fragment = "";
+    while (loopIndex <= cascaderEnd) {
+        if (loopIndex > 1) {
+            $cascaderBack.attr("status", "activity");
+        } else {
+            $cascaderBack.attr("status", "disabled");
+        }
+        nextSelect = qdiv.find("[data-cascader-index=" + loopIndex + "]");
+        if (chartData.plantform == "PC") {
+            nextSelect.hide();
+            nextSelect.find(".cascader-default").text(nextSelect.find(".cascader-default").attr('data-title')).attr("title", nextSelect.find(".cascader-default").attr('data-title'));
+            nextSelect.attr("data-cascader-select-index", "").attr("data-cascader-select-value", "");
+            if (chartData.isFirstSelect) {
+                break;
+            }
+            if (loopIndex == currentCascaderIndex + 1 && currentData.children && currentData.children.length > 0) {
+                for (var i = 0, len = currentData.children.length; i < len; i++) {
+                    fragment += createPCOption(i + 1, currentData.children[i].title || "", qid)
+                }
+                if (fragment) {
+                    nextSelect.find(".cascader-dropdown").html(fragment);
+                }
+                if (currentCascaderIndex < cascaderEnd - 1) {
+                    nextSelect.show();
+                }else{
+                    $cascaderBack.attr("status", "activity");
+                }
+            }
+        } else {
+            nextSelect.find("option:not([value=0])").remove();
+            nextSelect.parent().attr("display", false);
+            nextSelect.attr("data-cascader-select-index", "").attr("data-cascader-select-value", "");
+            if (chartData.isFirstSelect) {
+                break;
+            }
+            if (loopIndex == currentCascaderIndex + 1 && currentData.children && currentData.children.length > 0) {
+                for (var i = 0, len = currentData.children.length; i < len; i++) {
+                    fragment += createMobileOption(i + 1, currentData.children[i].title || "")
+                }
+                if (fragment) {
+                    nextSelect.append(fragment);
+                }
+                if (currentCascaderIndex < cascaderEnd - 1) {
+                    nextSelect.parent().attr("display", true);
+                }else{
+                    $cascaderBack.attr("status", "activity");
+                }
+            }
+        }
+        loopIndex++;
+    }
+    var chartObj = {
+        "q_disp_type": qDispType,
+        "cascade_filter": cascaderList
+    };
+    var chart_type = $("#param_chart_type_" + qid).val();
+    var sort_type = $("#param_sort_type_" + qid).val();
+    var display_type = $("#param_show_type_" + qid).val();
+    var chart_status = $("#param_chart_show_or_hide_" + qid).val();
+    var table_status = $("#param_table_show_or_hide_" + qid).val();
+    qdiv.find("#params_question_cascader_" + qid).val(JSON.stringify(cascaderList));
+    if (chartData.plantform == "PC") {
+        show_chart_and_table(qid, chart_type, sort_type, display_type, chart_status, table_status, view_version, chartObj);
+    } else {
+        show_chart_and_table(qid, chart_type, sort_type, display_type, chart_status, table_status, view_version, qDispType, cascaderList,"");
+    }
+
+    function createPCOption(value, text) {
+        return '<li title=' + text + '  class="cascader-dropdown-option"  data-plantform = ' + chartData.plantform + ' data-index=' + value + '  data-qid=' + qid + '>' + text + '</li>'
+    }
+
+    function createMobileOption(value, text) {
+        return "<option value=" + value + " data-plantform = " + chartData.plantform + ">" + text + "</option>";
+    }
+}

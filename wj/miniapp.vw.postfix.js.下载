@@ -1,0 +1,47 @@
+/**
+ * 用途: 在小程序中使用webview引用本站的某些页面时,需要做特殊处理都统一写在这里
+ * 作者: shenxin
+ */
+
+
+(function () {
+    var top = /iphone/gi.test(navigator.userAgent) && (screen.height == 812 && screen.width == 375) ? 48 : 25;
+    if (document.URL.match('fromMiniApp')) {
+        $('.footer_content .jubao,.footer_mini .jubao').attr("href", "javascript:;").css({
+            "fontSize": 0
+        });
+        $('.wjtext a').attr('href', 'javascript:;');
+        setTimeout(function () {
+            $('.btn_link_dc').hide();
+        }, 0);
+    }
+    // 手机答题结束页,我也要免费创建按钮,在小程序中,要跳转到小程序的列表页
+    if (document.URL.indexOf('fromMiniApp=1') >= 0) {
+        var script = $('<script type="text/javascript" src="https://res.wx.qq.com/open/js/jweixin-1.3.2.js"></script>');
+        var script1 = $('<script type="text/javascript" src="https://s3.pstatp.com/toutiao/tmajssdk/jssdk-1.0.0.js"></script>');
+        if (document.URL.indexOf('fs=1') >= 0) {
+            $('body').append(script1);
+        } else {
+            $('body').append(script).append(script1);
+        }
+        $('.end_create_btn').on('click', function (e) {
+            e.preventDefault();
+            wx.miniProgram.redirectTo({
+                url: '/pages/pList/pList',
+            })
+            tt.miniProgram.redirectTo({
+                url: '/pages/pList/pList',
+            })
+        })
+    }
+})();
+
+// 判断是否是微信浏览器
+function isWeiXin() {
+    var ua = window.navigator.userAgent.toLowerCase();
+    if (ua.match(/MicroMessenger/i) == 'micromessenger') {
+        return true;
+    } else {
+        return false;
+    }
+}

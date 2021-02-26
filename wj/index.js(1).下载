@@ -1,0 +1,210 @@
+(function(global, $) {
+    'use strict';
+    // jq依赖
+    function getJQWidth(el) {
+        return $(el).width();
+    }
+
+    function getJQHeight(el) {
+        return $(el).height();
+    }
+
+    function checkStyleValue(val) {
+        if (typeof val === 'number') {
+            return val + 'px';
+        }
+        return val;
+    }
+
+    function createDom(data, attr, fn) {
+        var dom = document.createElement('div');
+        if (data === null || data === undefined) {
+
+        } else if (typeof data === 'object') {
+            dom.appendChild(data);
+        } else {
+            dom.innerHTML = data;
+        }
+        if (!attr) return dom;
+        for (var key in attr) {
+            attr[key] && dom.setAttribute(key, attr[key]);
+        }
+        if (fn && typeof fn === 'function') {
+            window.on(dom, 'click', fn);
+        }
+        return dom;
+    }
+
+    function noScroll(ev) {
+        var event = ev || window.event;
+        event.preventDefault ? event.preventDefault() : event.returnValue = false;
+        return false;
+    }
+    // 获取页面宽度和高度
+    function getWindowInnerWidthAndHeight(type) {
+        var width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+        var height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+        if (type === 'width') {
+            return width;
+        } else if (type === 'height') {
+            return height;
+        } else {
+            return {
+                width: width,
+                heigth: height
+            };
+        }
+    }
+    // 默认值
+    var DEFAULT_MAXWIDTH = 200;
+    var DEFAULT_TIME = 2000;
+    var DEFAULT_IMG_WIDTH = 20;
+    var DEFAULT_IMG_HEIGHT = 20;
+    var uuid = 0;
+    var Toast = function(options) {
+        /* options : {} object(参数见下) 或 " 内容" string(直接当作内容显示)
+        **
+        ***options ：object 参数详解
+        *  {
+        *       message : "string / html字符串 / dom对象",
+        *       img : "object(参数见下) / 布尔值(默认loading图)",
+        *       time ： "数值 单位ms，默认值1000ms，正值>0 为超时隐藏 or 负值<0 为一直显示",
+        *       maxWidth : "数值 100 / px值 eg.'100px' ",
+        *       width : "数值 100 / px值 eg.'100px' ",
+        *       height : "数值 100 / px值 eg.'100px' ",
+        *       top : "数值 100 / px值 eg.'100px' ",
+        *       left : "数值 100/px值 eg.'100px' ",
+        *   }
+        *
+        ****** img : object 参数详解
+        *       {
+        *           url: "自定义img图片地址",
+        *           width : "数值 100 / px值 eg.'100px' ",
+        *           height : "数值 100 / px值 eg.'100px' ",
+        *       }
+        */
+        var options = options;
+        var visible = false;
+        if (!options || (typeof options !== 'string' && typeof options !== 'object')) return;
+        // 直接传文案，默认显示一段时间隐藏处理 time 1000s
+        if (typeof options === 'string') {
+            options = {
+                message: options,
+                time: DEFAULT_TIME
+            };
+        }
+        var nodeId = 'toast_' + uuid; // 生成唯一id
+        var timer = null; // 定时器
+
+        uuid++;
+        // 主体
+        var noder = createDom(null, {
+            'id': nodeId,
+            'class': 'toast_box'
+        });
+        // 定义样式
+        noder.style.maxWidth = options.maxWidth ? checkStyleValue(options.maxWidth) : (DEFAULT_MAXWIDTH + 'px');
+
+        var wrap = createDom(null, {
+            'id': nodeId + '_wrap',
+            'class': 'toast_wrap'
+        });
+
+        // 遮罩层 mask
+        var mask = null;
+        if (options.mask) {
+            mask = createDom(null, {
+                'id': nodeId + '_mask',
+                'class': 'toast_mask'
+            });
+            document.body.appendChild(mask);
+        }
+
+        noder.appendChild(wrap);
+        document.body.appendChild(noder);
+
+        // 图片 布尔值 直接使用默认图片
+        var imgTag = '';
+        var imgWrap = null;
+        if (options.img) {
+            if (typeof options.img === 'object' && options.img.url) {
+                imgTag = '<img src="' + options.img.url + '"';
+                imgTag += (options.img.width ? ' width="' + parseInt(options.img.width) + '"' : (options.img.height ? '' : ' width="' + DEFAULT_IMG_WIDTH + '"'));
+                imgTag += (options.img.height ? ' height="' + parseInt(options.img.height) + '"' : (options.img.width ? '' : ' height="' + DEFAULT_IMG_HEIGHT + '"'));
+                imgTag += '>';
+            } else if (typeof options.img === 'boolean') {
+                imgTag = '<div class="toast_default_img"></div>';
+            }
+            if (imgTag) {
+                imgWrap = createDom(imgTag, {
+                    'class': 'toast_img'
+                });
+                wrap.appendChild(imgWrap);
+            }
+        }
+        // 文案
+        var message = createDom(options.message, {
+            'class': 'toast_message'
+        });
+        wrap.appendChild(message);
+
+        // 定位计算
+        if (options.width) {
+            noder.style.width = checkStyleValue(options.width);
+        }
+        if (options.height) {
+            noder.style.height = checkStyleValue(options.height);
+        }
+        var position = {};
+        if ('top' in options) {
+            position.top = checkStyleValue(options.top);
+        } else {
+            position.top = (getWindowInnerWidthAndHeight('height') - getJQHeight('#' + nodeId)) / 2 + 'px';
+        }
+        if ('left' in options) {
+            position.left = checkStyleValue(options.left);
+        } else {
+            position.left = (getWindowInnerWidthAndHeight('width') - getJQWidth('#' + nodeId)) / 2 + 'px';
+        }
+        // 展示
+        visible = true;
+        noder.style.top = position.top;
+        noder.style.left = position.left;
+        noder.style.opacity = 1;
+
+        function _hidden() {
+            clearTimeout(timer);
+            timer = null;
+            visible = false;
+            mask && mask.parentNode && mask.parentNode.removeChild(mask); // 移除节点
+            noder.style.opacity = 0;
+            noder && noder.parentNode && noder.parentNode.removeChild(noder); // 移除节点
+            mask = null;
+            noder = null;
+        }
+
+        // 负值不做定时
+        options.time = options.time ? options.time : DEFAULT_TIME;
+        options.time >= 0 && (timer = setTimeout(function() {
+            _hidden();
+        }, options.time));
+        return {
+            hidden: function() {
+                if (!visible) return;
+                _hidden();
+            }
+        };
+    };
+    Toast.hidden = function() {
+        $('.toast_mask').hide();
+        $('.toast_box').hide();
+    };
+
+    if (typeof module !== 'undefined' && module.exports) module.exports = Toast;
+    if (typeof define === 'function') {
+        define(function() {
+            return Toast;
+        });
+    }
+    global.Toast = Toast;
+})(window, jQuery);

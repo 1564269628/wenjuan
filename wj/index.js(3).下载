@@ -1,0 +1,325 @@
+(function () {
+    //默认配置，前后50年
+    var dateopts = {
+        beginYear: new Date().getFullYear() - 50,
+        beginMonth: 1,
+        beginDay: 1,
+        endYear: new Date().getFullYear() + 50,
+        endMonth: 12,
+        endDay: 31
+        },
+        dateContentBox = "",
+        yearTag = "",
+        monthTag = "",
+        dayTag = "",
+        indexY = 1,
+        indexM = 1,
+        indexD = 1,
+        yearScroll = null,
+        monthScroll = null,
+        dayScroll = null,
+        yearUl = null,
+        monthUl = null,
+        dayUl = null,
+        YmdPickerDom = null,
+        singleInstance = null,
+        autoScrollToYear = -1,
+        autoScrollToMonth = -1,
+        autoScrollToDay = -1,
+        isProd = window.location.href.indexOf("https://wenjuan.com") > -1,
+        console = isProd ? function(){} : {
+            log: function(){
+                window.console.log.apply(this, arguments);
+            }
+        },
+        dateYearAttr = "data-year",
+        dateMonthAttr = "data-month",
+        dateDayAttr = "data-day";
+
+        function dateForTen(n) {
+            return n
+            return n < 10 ? "0" + n : n
+        }
+    var DateYMDPicker = function (opts) {
+        //单例
+        if(singleInstance) {
+            singleInstance.setTimeInterval(opts || {});
+            return singleInstance
+        }
+        this.visible = false;
+        this.setTimeInterval(opts || {});
+        this.createDateBox();
+        singleInstance = this;
+        return singleInstance
+    };
+    DateYMDPicker.prototype = {
+        constructor: DateYMDPicker,
+        destroy: function() {
+            YmdPickerDom.parentElement.removeChild(YmdPickerDom);
+            singleInstance = null;
+        },
+        domShow: function(isShow) {
+            YmdPickerDom.setAttribute("class", isShow ? "slideIn ymd-picker" : "slideOut ymd-picker");
+            this.visible = isShow;
+        },
+        showPicker: function (showOps) {
+            showOps = showOps || {};
+            this.setTimeInterval(showOps);
+            this.refreshScroll(showOps.year, showOps.month, showOps.day);
+            this.domShow(true);
+            this.success = showOps.success || function(){};
+            this.cancel = showOps.cancel || function(){};
+        },
+        setTimeInterval: function(opts){
+            this.beginYear = opts.beginYear || this.beginYear || dateopts.beginYear;
+            this.beginMonth = opts.beginMonth || this.beginMonth || dateopts.beginMonth;
+            this.beginDay = opts.beginDay || this.beginDay || dateopts.beginDay;
+            this.endYear = opts.endYear || this.endYear || dateopts.endYear;
+            this.endMonth = opts.endMonth || this.endMonth || dateopts.endMonth;
+            this.endDay = opts.endDay || this.endDay || dateopts.endDay;
+        },
+        createDateBox: function () {
+            YmdPickerDom = document.getElementById("YMDPICKERID");
+            if (!YmdPickerDom) {
+                dateContentBox = document.createElement("div");
+                dateContentBox.id = "YMDPICKERID";
+                dateContentBox.class = "ymd-picker";
+                document.body.appendChild(dateContentBox);
+                YmdPickerDom = document.getElementById("YMDPICKERID")
+            }
+            this.domShow(false);
+            this.createDomUi();
+            yearUl = document.getElementById("ymd-picker-year-Ul");
+            monthUl = document.getElementById("ymd-picker-month-Ul");
+            dayUl = document.getElementById("ymd-picker-day-Ul");
+            this.initScroll();
+            this.mounted();
+        },
+        createDomUi: function () {
+            var str = "" + '<div class="ymd-picker-bg"></div>' + '<div class="ymd-picker-box" id="ymd-picker-box">' + '<div class="ymd-picker-head">' + '<div id="ymd-picker-btn-cancel" class="fl btn-cancel">取消</div>' + '<div id="ymd-picker-btn-sure" class="fr btn-sure">完成</div>' + "</div>" + '<div class="ymd-picker-content">' + '<div class="ymd-picker-border"></div>' + '<div id="ymd-picker-year-wrap">' + '<ul id="ymd-picker-year-Ul"></ul>' + "</div>" + '<div id="ymd-picker-month-wrap">' + '<ul id="ymd-picker-month-Ul"></ul>' + "</div>" + '<div id="ymd-picker-day-wrap">' + '<ul id="ymd-picker-day-Ul"></ul>' + "</div>" + "</div>" + "</div>";
+            YmdPickerDom.innerHTML = str
+        },
+        createDateYMD: function (type) {
+            var that = this;
+            var str = "<li>&nbsp;</li>";
+            var beginNum = null,
+                endNum = null,
+                unitName = "年",
+                dataStyle = dateYearAttr;
+            if (type == "year") {
+                beginNum = that.beginYear;
+                endNum = that.endYear
+            }
+            if (type == "month") {
+                unitName = "月";
+                dataStyle = dateMonthAttr;
+                beginNum = 1;
+                endNum = 12;
+                if(yearTag == that.beginYear) {
+                    beginNum = that.beginMonth
+                }
+                if(yearTag == that.endYear) {
+                    endNum = that.endMonth
+                }
+            }
+            if (type == "day") {
+                unitName = "日";
+                dataStyle = dateDayAttr;
+                beginNum = 1;
+                endNum = new Date(yearTag, monthTag, 0).getDate();
+                if (yearTag == that.beginYear && monthTag == that.beginMonth) {
+                    beginNum = that.beginDay
+                }
+                if (yearTag == that.endYear && monthTag == that.endMonth) {
+                    endNum = that.endDay
+                }
+            }
+            for (var i = beginNum; i <= endNum; i++) {
+                str += "<li " + dataStyle + "=" + i + ">" + dateForTen(i) + unitName + "</li>"
+            }
+            return str + "<li>&nbsp;</li>"
+        },
+        initScroll: function () {
+            var that = this;
+            yearScroll = new iScroll("ymd-picker-year-wrap", {
+                snap: "li",
+                vScrollbar: false,
+                onScrollEnd: function () {
+                    console.log("year scroll end");
+                    var scroll = autoScrollToYear;
+                    if(autoScrollToYear >= 0) {
+                        autoScrollToYear = -1;
+                        console.log("year trigger autoScrollToYear");
+                        yearScroll.scrollTo(0, scroll, 200, true);
+                        return;
+                    }
+                    indexY = Math.ceil(this.y / 40 * -1 + 1);
+                    yearTag = yearUl.getElementsByTagName("li")[indexY].getAttribute("data-year");
+                    monthUl.innerHTML = that.createDateYMD("month");
+                    monthScroll.refresh();
+                    if(autoScrollToMonth >= 0) {
+                        console.log("year trigger autoScrollToMonth");
+                        monthScroll.scrollTo(0, 0);
+                        return;
+                    }
+                    try {
+                        monthTag = monthUl.getElementsByTagName("li")[indexM].getAttribute(dateMonthAttr)
+                    } catch (err) {
+                        return true
+                    }
+                    dayUl.innerHTML = that.createDateYMD("day");
+                    dayScroll.refresh();
+                    try {
+                        dayTag = dayUl.getElementsByTagName("li")[indexD].getAttribute(dateDayAttr)
+                    } catch (err) {
+                        return true
+                    }
+                    console.log("yearScroll", yearTag, monthTag, dayTag);
+                }
+            });
+            monthScroll = new iScroll("ymd-picker-month-wrap", {
+                snap: "li",
+                vScrollbar: false,
+                onScrollEnd: function () {
+                    console.log("month scroll end");
+                    var scroll = autoScrollToMonth;
+                    if(autoScrollToMonth >= 0) {
+                        autoScrollToMonth = -1;
+                        console.log("month trigger autoScrollToMonth");
+                        monthScroll.scrollTo(0, scroll, 200, true);
+                        return;
+                    }
+                    indexM = Math.ceil(this.y / 40 * -1 + 1);
+                    if (indexM == 1 && yearTag != that.beginYear) {
+                        monthTag = 1
+                    } else {
+                        monthTag = monthUl.getElementsByTagName("li")[indexM].getAttribute(dateMonthAttr)
+                    }
+                    dayUl.innerHTML = that.createDateYMD("day");
+                    dayScroll.refresh();
+                    if(autoScrollToDay >= 0) {
+                        console.log("month trigger autoScrollToDay");
+                        dayScroll.scrollTo(0, 0);
+                        return;
+                    }
+                    try {
+                        dayTag = dayUl.getElementsByTagName("li")[indexD].getAttribute(dateDayAttr)
+                    } catch (err) {
+                        return true
+                    }
+                    console.log("monthScroll", yearTag, monthTag, dayTag);
+                }
+            });
+            dayScroll = new iScroll("ymd-picker-day-wrap", {
+                snap: "li",
+                vScrollbar: false,
+                onScrollEnd: function () {
+                    console.log("day scroll end");
+                    var scroll = autoScrollToDay;
+                    if(autoScrollToDay >= 0) {
+                        autoScrollToDay = -1;
+                        console.log("day trigger autoScrollToDay");
+                        dayScroll.scrollTo(0, scroll, 200, true);
+                        return;
+                    }
+                    indexD = Math.ceil(this.y / 40 * -1 + 1);
+                    if (indexD == 1 && monthTag != that.beginMonth) {
+                        dayTag = 1
+                    } else {
+                        dayTag = dayUl.getElementsByTagName("li")[indexD].getAttribute(dateDayAttr)
+                    }
+                    console.log("dayScroll", yearTag, monthTag, dayTag);
+                }
+            })
+        },
+        refreshScroll: function (year, month, day) {
+            //滚动至 指定日期 || 当天
+            var that = this;
+            var today = new Date();
+            var toYear = Number(year || today.getFullYear());
+            var toMonth = Number(month || today.getMonth() + 1);
+            var toDay = Number(day || today.getDate());
+            //计算移动位置
+            console.log("scroll to:", toYear,"/" , toMonth, "/", toDay);
+            // debugger
+            if(toYear == that.beginYear) {
+                if(toMonth < that.beginMonth) {
+                    toMonth = 0;
+                    toDay = 0;
+                } else {
+                    if(toMonth == that.beginMonth) {
+                        if(toDay < that.beginDay) {
+                            toDay = 0;
+                        } else {
+                            toDay -= that.beginDay
+                        }
+                    } else {
+                        toDay -= 1;
+                    }
+                    toMonth -= that.beginMonth;
+                    
+                }
+            } else if(toYear == that.endYear) {
+                if(toMonth > that.endMonth) {
+                    toMonth = that.endMonth - 1;
+                    toDay = 0;
+                } else {
+                    if(toMonth == that.endMonth) {
+                        if(toDay > that.endDay) {
+                            toDay = that.endDay - 1;
+                        } else {
+                            toDay -= 1;
+                        }
+                    } else {
+                        toDay -= 1;
+                    }
+                    toMonth -= 1;
+                }
+            } else {
+                if(toYear > that.endYear || toYear < that.beginYear) {
+                    toMonth = 0;
+                    toDay = 0;
+                } else {
+                    toMonth -= 1;
+                    toDay -= 1;
+                }
+            }
+            toYear -= that.beginYear;
+            console.log("scroll col position :", toYear, toMonth, toDay);
+            //记录自动滚动
+            autoScrollToYear = toYear * 40;
+            autoScrollToMonth = toMonth * 40;
+            autoScrollToDay = toDay * 40;
+            yearUl.innerHTML = this.createDateYMD("year");
+            yearScroll.refresh();
+            yearScroll.scrollTo(0, 0);
+        },
+        mounted: function () {
+            var that = this;
+            var sureBtn = document.getElementById("ymd-picker-btn-sure");
+            var cancelBtn = document.getElementById("ymd-picker-btn-cancel");
+            sureBtn.onclick = function () {
+                that.success && that.success({
+                    year: yearTag,
+                    month: monthTag,
+                    day: dayTag,
+                });
+                that.dateCancel();
+            };
+            cancelBtn.onclick = function () {
+                that.cancel && that.cancel();
+                that.dateCancel();
+            }
+        },
+        dateCancel: function () {
+            this.domShow(false);
+            this.success = null;
+            this.camcel = null;
+        }
+    };
+    if (typeof exports !== "undefined") {
+        exports.DateYMDPicker = DateYMDPicker
+    } else {
+        window.DateYMDPicker = DateYMDPicker
+    }
+})();

@@ -1,0 +1,173 @@
+/* 表单详情页面改版后的头部样式 */
+.header_form{
+    color: #484848;
+    background: #f4f4f4;
+}
+
+/* 改版后的头部导航返回按钮样式 */
+.header_form .page_ComeBack{
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    margin: 12px 8px 0 auto;
+    background: url(/static/images/weixin/icon_report1.png) no-repeat 0px 0px;
+}
+
+/* 改版后的头部导航样式 */
+.header_form .header_nav{
+    position: relative;
+}
+.header_nav_drop{
+position: relative;
+}
+.header_nav_drop::before{
+    content: '';
+    position: absolute;
+    right: 15px;
+    top: 8px;
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 8px solid rgb(170, 170, 170);
+}
+.header_nav_drop::after{
+    content: '';
+    position: absolute;
+    display: none;
+    right: 15px;
+    top: 8px;
+    width: 0; 
+    height: 0; 
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent; 
+    border-bottom: 8px solid rgb(170, 170, 170); 
+}
+.header_nav_drop.active::before{
+    display: none;
+}
+.header_nav_drop.active::after{
+    display: block;
+}
+.header_nav .header_nav_dropdown{
+    width: 140px;
+    position: fixed;
+    top: 50px;
+    background: #dcdcdc;
+    display: none;
+}
+.header_nav .header_nav_dropdown li{
+    float: unset;
+    border-top: 1px solid #dcdcdc;
+    border-left: none;
+    padding:0px;
+    line-height: 21px;
+    border-radius: unset;
+    font-size: 20px;
+    color: #484848;
+}
+.header_nav .header_nav_dropdown li a{
+    color: #484848;
+    display: inline-block;
+    width: 100%;
+    padding: 3px 18px;
+}
+
+/* 表单数据页面新增详情页面 */
+.titlec{
+    background-color: #f4f4f4;
+    padding:  30px 18px 6px 20px;
+    height: 186px;
+  }
+  .titlec  h1{
+    width: 100%;
+    font-size: 21px;
+    font-weight: 400;
+    margin-bottom: 20px;
+      word-break: break-all;
+  }
+  .Total_recovery{
+    color: #aaa;
+    display: inline-block;
+    margin-bottom: 10px;
+  }
+  .Total_recovery_box{
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+  }
+  .Total_recovery:nth-child(1){
+    min-width: 40%;
+  }
+  .Total_recovery:nth-child(2){
+    min-width: 40%;
+  }
+
+  .more_list_img{
+     width: 24px;
+    height: 24px;
+    display: inline-block;
+    position: absolute;
+    right:20px;
+    top:14px;
+    background:url("/static/images/weixin/page_share.png");
+    background-size: 100%;
+  }
+  .more_data{
+    /* width: 110px; */
+    /* height: 114px; */
+    background-color: #484848;
+    position: fixed;
+    top: 46px;
+    right:16px;
+    color: #fff;
+    padding: 0px;
+    box-sizing: border-box;
+    display: none;
+    z-index: 9999;
+  }
+
+  .report_share_are{
+    width: 24px;
+    height: 24px;
+     background: url('/static/images/weixin/icon_report1.png') no-repeat -48px 0px ;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 12px;
+  }
+  .report_download_load{
+    width: 24px;
+    height: 24px;
+    background: url('/static/images/weixin/icon_report1.png') no-repeat -72px 0px ;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 12px;
+  }
+
+
+  /* 表格样式改版 */
+  .DataTable thead tr .tdiv{
+      color: #aaa
+  }
+  .report-icon {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    background: url('/static/images/mobile_report_icon.png?v=20190107') no-repeat;
+    background-size: 1720px auto;
+  }
+  
+  .report-back-position {
+    margin: 10px 8px 0 auto;
+    background-position: -469px -159px;
+  }
+  .more_list{
+    width: 24px;
+    height: 24px;
+    display: inline-block;
+    position: absolute;
+    right:20px;
+    top:13px;
+    background-position: -730px -159px ;
+  }

@@ -1,0 +1,230 @@
+.ymd-picker {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    left: 0;
+    top: -100%;
+    z-index: 9999;
+    opacity: 0;
+}
+.ymd-picker-box :after {
+    padding: 0;
+    margin: 0;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    font-family: microsoft yahei, helvetica neue, Arial, Helvetica, sans-serif;
+    word-break: break-all
+}
+
+*:focus {
+    outline: none
+}
+
+.fl {
+    float: left
+}
+
+.fr {
+    float: right
+}
+
+.ymd-picker-bg {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, .3);
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 99;
+}
+
+.ymd-picker-box {
+    width: 100%;
+    position: absolute;
+    left: 0;
+    background-color: #fff;
+    box-shadow: -5px 0 5px rgba(0, 0, 0, .3);
+    z-index: 9999;
+    transition: bottom .4s;
+    bottom: -270px
+}
+
+.slideIn {
+    display: block !important
+}
+.slideIn.ymd-picker {
+    top: 0;
+    opacity: 1;
+}
+.slideOut.ymd-picker {
+    top: 100%;
+}
+.slideIn .ymd-picker-box {
+    animation: slideIn .4s;
+    -webkit-animation: slideIn .4s;
+    bottom: 0
+}
+
+.slideOut .ymd-picker-box {
+    animation: slideOut .4s;
+    -webkit-animation: slideOut .4s;
+    bottom: -400px
+}
+
+.ymd-picker-box .ymd-picker-head {
+    border-bottom: 1px solid #d5d5d5;
+    background-color: #ffffff;
+    overflow: hidden;
+}
+
+.ymd-picker-box .ymd-picker-head div {
+    padding: 0 18px;
+    color: #2672FF;
+    font-size: 17px;
+    line-height: 44px;
+    background: 0 0;
+    border: 0;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, .2)
+}
+
+.ymd-picker-box .ymd-picker-content {
+    width: 100%;
+    margin: 47px 0;
+    height: 120px;
+    overflow: hidden;
+    position: relative
+}
+
+.ymd-picker-box .ymd-picker-content:before {
+    content: "";
+    width: 100%;
+    height: 40px;
+    background: -webkit-linear-gradient(top, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0));
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 10;
+    pointer-events: none
+}
+
+.ymd-picker-box .ymd-picker-content:after {
+    content: "";
+    width: 100%;
+    height: 40px;
+    background: -webkit-linear-gradient(bottom, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0));
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    z-index: 10;
+    pointer-events: none
+}
+
+.ymd-picker-box .ymd-picker-content .ymd-picker-border {
+    width: 100%;
+    height: 40px;
+    position: absolute;
+    left: 0;
+    top: 40px
+}
+
+.ymd-picker-box .ymd-picker-content .ymd-picker-border:before,
+.ymd-picker-box .ymd-picker-content .ymd-picker-border:after {
+    content: "";
+    width: 100%;
+    height: 1px;
+    background-color: #ccc;
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform: scaleY(.5);
+    -webkit-transform: scaleY(.5)
+}
+
+.ymd-picker-box .ymd-picker-content .ymd-picker-border:after {
+    top: auto;
+    bottom: 0
+}
+
+#ymd-picker-year-wrap,
+#ymd-picker-month-wrap,
+#ymd-picker-day-wrap {
+    width: 33.3%;
+    height: 100%;
+    position: absolute;
+    top: 0
+}
+
+#ymd-picker-year-wrap {
+    left: 0
+}
+
+#ymd-picker-day-wrap {
+    right: 0
+}
+
+#ymd-picker-month-wrap {
+    left: 33.3%
+}
+
+#ymd-picker-year-wrap ul {
+    margin-left: 40%
+}
+
+#ymd-picker-day-wrap ul {
+    margin-right: 40%
+}
+
+#ymd-picker-year-wrap ul li,
+#ymd-picker-month-wrap ul li,
+#ymd-picker-day-wrap ul li {
+    height: 40px;
+    line-height: 40px;
+    font-size: 14px;
+    text-align: center;
+    list-style: none
+}
+
+@keyframes slideIn {
+    0% {
+        bottom: -270px
+    }
+
+    100% {
+        bottom: 0
+    }
+}
+
+@-webkit-keyframes slideIn {
+    0% {
+        bottom: -270px
+    }
+
+    100% {
+        bottom: 0
+    }
+}
+
+@keyframes slideOut {
+    0% {
+        bottom: 0
+    }
+
+    100% {
+        bottom: -270px
+    }
+}
+
+@-webkit-keyframes slideOut {
+    0% {
+        bottom: 0
+    }
+
+    100% {
+        bottom: -270px
+    }
+}
+@media only screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) {
+    .ymd-picker-box .ymd-picker-content {
+        margin-bottom: env(safe-area-inset-bottom);
+    }
+  } 

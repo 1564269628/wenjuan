@@ -1,0 +1,333 @@
+
+(function(global, $) {
+    'use strict';
+    // jq依赖
+    function getJQWidth(el) {
+        return $(el).width();
+    }
+
+    function getJQHeight(el) {
+        return $(el).height();
+    }
+
+    // 方向映射表 推荐使用 top bottom right left
+    var DERECTION = {
+        'up': 'top',
+        'top': 'top',
+        'down': 'bottom',
+        'bottom': 'bottom',
+        'right': 'right',
+        'left': 'left'
+    };
+    var uuid = 0;
+    var GuideText = function(options) {
+        var ops = options || {};
+        this.maxWidth = ops.maxWidth || undefined; // 初始化最大宽度
+        this.safePX = ops.safePX || 2; // 安全边距值,保证不会弹框不会溢出可视区域外边最小距离
+        this.gap = ops.gap || 10; // 弹框 距离 元素 的 距离
+        this.noder = null; // 弹框节点
+        this.id = 'guidetext_' + uuid; // 生成唯一id
+        uuid++;
+        this.visible = false; // 状态位
+        this.colorType = ops.colorType || 'original'; // 区别显示哪种颜色类型的弹窗
+        this.classes = ops.classes; // 新增class
+        this.timerId = null; // setTimeout id
+        this.init();// 挂载节点
+    };
+
+    GuideText.prototype = {
+        init: function() {
+            if (this.noder) {
+                return this;
+            }
+            this.noder = document.createElement('div');
+            this.noder.id = this.id;
+            this.noder.className = 'guide_text';
+            this.noderText = document.createElement('div');
+            this.noderArrow = document.createElement('span');
+            this.noderText.classList.add('div-original');
+            this.noderArrow.classList.add('span-change');
+            this.maxWidth && (this.noder.style.maxWidth = this.maxWidth + 'px');
+            this.noder.appendChild(this.noderText);
+            this.noder.appendChild(this.noderArrow);
+            if (this.classes) {
+                this.noder.classList.add(this.classes);
+            }
+            if (document.body) {
+                document.body.appendChild(this.noder);
+            } else {
+                $('body').append(this.noder);
+            }
+            return this;
+        },
+        updateInner: function(val) {
+            this.noderText.innerHTML = String(val) || '';
+        },
+        updateStyle: function(options) {
+            if (!('top' in options) || !('left' in options)) {
+                this.noder.style.display = 'none';
+                return;
+            }
+            var direction = options.direction || 'top';
+            this.noder.style.position = options.position || 'fixed';
+            this.noder.style.top = Number(options.top) + 'px';
+            if ('left' in options) {
+                this.noder.style.left = Number(options.left) + 'px';
+            }
+            if ('right' in options) {
+                this.noder.style.right = Number(options.right) + 'px';
+            }
+            this.noder.className = this.classes ? this.classes + ' guide_text guide_text_' + direction : 'guide_text guide_text_' + direction;
+            this.noderArrow.style.position = 'absolute';
+            this.noderArrow.style.top = options.arrow.top + 'px';
+            this.noderArrow.style.left = options.arrow.left + 'px';
+            if (options.colorType == 'original') {
+                this.noderText.classList.add('div-original');
+                this.noderText.classList.remove('div-change');
+                this.noderArrow.classList.add('span-original');
+                this.noderArrow.classList.remove('span-change');
+            } else {
+                this.noderText.classList.add('div-change');
+                this.noderText.classList.remove('div-original');
+                this.noderArrow.classList.add('span-change');
+                this.noderArrow.classList.remove('span-original');
+            }
+            this._show();
+        },
+        _show: function() {
+            var that = this;
+            that.timerId = setTimeout(function() {
+                that.visible = true;
+                that.noder.style.display = 'block';
+            }, 0);
+        },
+        hidden: function() {
+            clearTimeout(this.timerId);
+            this.timerId = null;
+            this.visible = false;
+            this.noder.style.display = 'none';
+        },
+        destroy: function() {
+            this.hidden();
+            this.noder.parentNode.removeChild(this.noder);
+        },
+        show: function(ref, options) {
+            /*
+               ref 参照元素 可以是选择器字符串也可以node
+            */
+            /* options
+                {
+                   inner:"xxx",
+                   direction:"top"
+                }
+            */
+            // ref ：弹框 参照元素
+            if (!ref || !('inner' in options)) return this;
+            if (!options.direction) {
+                options.direction = 'top';
+            } else {
+                !DERECTION[options.direction] && console.log('GuideText插件direction无效--' + DERECTION[options.direction] + '，diretion推荐使用 top bottom right left');
+                options.direction = DERECTION[options.direction] || options.direction.top;
+            }
+            // 优先更新Text,maxwidth 便于计算高度
+            this.updateInner(options.inner);
+
+            'maxWidth' in options && (this.noder.style.maxWidth = options.maxWidth + 'px');
+            // 元素定位计算
+            var currentRef = ref;
+            if (typeof currentRef === 'string') {
+                currentRef = document.querySelector(ref);
+            }
+
+            var positionCfg = {};
+            // 弹框定位 信心
+            var useFixed = false;
+            if (options.position) {
+                useFixed = true;
+            } else{
+                useFixed = isFixed(currentRef);
+            }
+            positionCfg['position'] = useFixed ? 'fixed' : 'absolute';
+            var relativeElemOffset = getOffset(currentRef, useFixed);
+            // 定位值计算
+            // 上下场景 Y轴计算
+            var relativeTop = relativeElemOffset.top; //弹框定位值
+                var popHeight = getJQHeight("#" + this.id) + this.gap; //弹框高度+间距
+                var safeHeight = popHeight + this.safePX; // 安全高度：弹框高度+间距+安全距离
+            // 左右场景 X轴
+            var relativeLeft = relativeElemOffset.left; //弹框定位值
+                var popWidth = getJQWidth("#" + this.id) + this.gap; //弹框高度+间距
+                var safeWidth = popWidth + this.safePX; // 安全高度：弹框高度+间距+安全距离
+            // 箭头定位
+            var arrowLeft = 10;
+                var arrowTop = 10;
+            // 上下方向
+            var windowHeight = getWindowInnerWidthAndHeight('height');
+            var windowWidth = getWindowInnerWidthAndHeight('width');
+            if (options.direction == 'top' || options.direction == 'bottom') {
+                // Y轴
+                // 固定定位下，弹框在上下方，溢出可视区域的情景，适应改变弹框方向
+                if (useFixed && options.direction == 'top' && relativeTop < safeHeight) {
+                    // 弹窗在下，top值为当前元素相对屏幕顶部值+参照元素高度+沟距值
+                    options.direction = 'bottom';
+                    positionCfg['top'] = relativeTop + relativeElemOffset.height + this.gap;
+                    console.log('替换direction为bottom');
+                } else if (useFixed && options.direction == 'bottom' && (windowHeight - relativeTop - relativeElemOffset.height < safeHeight)) {
+                    options.direction = 'top';
+                    positionCfg['top'] = relativeTop - popHeight;
+                    console.log('替换direction为top');
+                } else {
+                    positionCfg['top'] = options.direction == 'bottom' ? relativeTop + relativeElemOffset.height + this.gap : relativeTop - popHeight;
+                }
+                arrowTop = options.direction == 'bottom' ? 0 : (popHeight - this.gap);
+                // X轴
+                // 水平居中
+                if (useFixed && (relativeLeft + relativeElemOffset.width / 2 > (popWidth - this.gap) / 2 + this.safePX) && (windowWidth - relativeLeft - relativeElemOffset.width / 2 > (popWidth - this.gap) / 2 + this.safePX)) {
+                    positionCfg['left'] = relativeLeft + relativeElemOffset.width / 2 - (popWidth - this.gap) / 2;
+                    arrowLeft = (popWidth - this.gap) / 2;
+                    // arrowLeft = relativeLeft - positionCfg["left"] + relativeElemOffset.width / 2;
+                } else if (useFixed && (relativeLeft + relativeElemOffset.width / 2 <= (popWidth - this.gap) / 2 + this.safePX)) {
+                    // 居左
+                    positionCfg['left'] = this.safePX;
+                    arrowLeft = relativeLeft - positionCfg['left'] + relativeElemOffset.width / 2;
+                } else if (useFixed && windowWidth - relativeLeft - relativeElemOffset.width / 2 <= (popWidth - this.gap) / 2 + this.safePX) {
+                    // 居右
+                    positionCfg['left'] = windowWidth - this.safePX - popWidth + this.gap;
+                    // arrowLeft = popWidth - 10;
+                    arrowLeft = relativeLeft - positionCfg['left'] + relativeElemOffset.width / 2;
+                } else {
+                    // 非固定定位
+                    positionCfg['left'] = relativeLeft + relativeElemOffset.width / 2 - (popWidth - this.gap) / 2;
+                    arrowLeft = (popWidth - this.gap) / 2;
+                }
+            } else {
+                // 左右方向
+                // X轴
+                // 溢出屏幕右边，改弹框方向为左侧
+                if (useFixed && options.direction == 'right' && (windowWidth - relativeLeft - relativeElemOffset.width < safeWidth)) {
+                    options.direction = 'left';
+                    positionCfg['left'] = relativeLeft - popWidth;
+                    console.log('替换direction为left');
+                } else if (useFixed && options.direction == 'left' && (relativeLeft < safeWidth)) {
+                    options.direction = 'right';
+                    positionCfg['left'] = relativeLeft + relativeElemOffset.width + this.gap;
+                    console.log('替换direction为right');
+                } else {
+                    positionCfg['left'] = options.direction == 'left' ? relativeLeft - popWidth : relativeLeft + relativeElemOffset.width + this.gap;
+                }
+                arrowLeft = options.direction == 'left' ? (popWidth - this.gap) : 0;
+                // Y轴 上下有效空间足够容纳提示弹框，即中心位置对应参照元素中心位置
+                if (useFixed && (relativeTop + relativeElemOffset.height / 2 > (popHeight - this.gap) / 2 + this.safePX) && (windowHeight - relativeTop - relativeElemOffset.height / 2 > (popHeight - this.gap) / 2 + this.safePX)) {
+                    positionCfg['top'] = relativeTop + relativeElemOffset.height / 2 - (popHeight - this.gap) / 2;
+                    arrowTop = (popHeight - this.gap) / 2;
+                } else if (useFixed && (relativeTop + relativeElemOffset.height / 2 <= (popHeight - this.gap) / 2 + this.safePX)) {
+                    // 居上 靠近视口顶部safePX值距离的位置
+                    positionCfg['top'] = this.safePX;
+                    arrowTop = relativeTop + relativeElemOffset.height / 2 - this.safePX;
+                } else if (useFixed && ((windowHeight - relativeTop - relativeElemOffset.height / 2) <= (popHeight - this.gap) / 2 + this.safePX)) {
+                    // 居下 靠近底部safePX值距离的位置
+                    positionCfg['top'] = windowHeight - this.safePX - popHeight + this.gap;
+                    arrowTop = relativeTop + relativeElemOffset.height / 2 - positionCfg['top'];
+                } else {
+                    // 非固定定位
+                    positionCfg['top'] = relativeTop + relativeElemOffset.height / 2 - (popHeight - this.gap) / 2;
+                    arrowTop = (popHeight - this.gap) / 2;
+                }
+            }
+            // 自定义 tooltip 偏移位置
+            if (options.customOffset) {
+                var customDirections = options.customOffset.direction;
+                var customValues = options.customOffset.value;
+                for (var index = 0; index < customDirections.length; index++) {
+                    var customDirection = customDirections[index];
+                    var customValue = customValues[index];
+                    positionCfg[customDirection] = positionCfg[customDirection] + customValue;
+                }
+            }
+            this.updateStyle({
+                direction: options.direction,
+                position: positionCfg.position,
+                top: positionCfg.top,
+                left: positionCfg.left,
+                colorType: options.colorType || 'original',
+                arrow: {
+                    top: arrowTop,
+                    left: arrowLeft
+                }
+            });
+        }
+    };
+
+    function getScrollTop() {
+        return 0;
+        return window.pageYOffset ? parseInt(window.pageYOffset) : parseInt(document.documentElement.scrollTop);
+    }
+
+    function getScrollLeft() {
+        return 0;
+        return window.pageXOffset ? parseInt(window.pageXOffset) : parseInt(document.documentElement.scrollLeft);
+    }
+
+    function getCss(el, prop) {
+        if (!el) {
+            throw new Error('argument[0] error');
+            return;
+        }
+        var prevComputedStyle = document.defaultView ? document.defaultView.getComputedStyle(el, null) : el.currentStyle;
+        return prevComputedStyle[prop] || '';
+    }
+    // 获取页面宽度和高度
+    function getWindowInnerWidthAndHeight(type) {
+        var width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+        var height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+        if (type == 'width') {
+            return width;
+        } else if (type == 'height') {
+            return height;
+        } else {
+            return {
+                width: width,
+                heigth: height
+            };
+        }
+    }
+    function isFixed(el) {
+        var prents = el;
+        while (prents.tagName.toLowerCase() != 'html') {
+            if (getCss(prents, 'position') == 'fixed') {
+                return true;
+            }
+            prents = prents.parentNode;
+        }
+        return false;
+    }
+
+    function getOffset(el, noScroll) {
+        var obj = {
+            left: parseInt(el.offsetLeft),
+            top: parseInt(el.offsetTop),
+            width: parseInt(el.offsetWidth),
+            height: parseInt(el.offsetHeight)
+        };
+        var ret = null;
+        // noScroll :无需考虑滚动高度，如fixed定位
+        if (noScroll) {
+            ret = el.getBoundingClientRect();
+            obj.top = ret.top;
+            obj.left = ret.left;
+        } else {
+            while (el = el.offsetParent) {
+                obj.left += parseInt(el.offsetLeft);
+                obj.top += parseInt(el.offsetTop);
+            }
+        }
+        return obj;
+    }
+    if (typeof module !== 'undefined' && module.exports) module.exports = GuideText;
+    if (typeof define === 'function') {
+        define(function() {
+            return GuideText;
+        });
+    }
+    global.GuideText = GuideText;
+})(window, jQuery);
